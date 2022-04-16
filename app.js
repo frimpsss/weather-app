@@ -48,71 +48,106 @@ function formatTime(tme){
     else{
         return tme
     }
+
 }
-formatTime(1)
-let userInput = document.querySelector('#city')
-let btn = document.querySelector('.submit')
-btn.addEventListener('click', getData)
+let userInput = document.querySelector("#city")
+const inputform = document.querySelector(".search form")
 
 
-// api stuff
-function getData(){
-    let  weather = {
-        city: userInput.value,
-        apiKey: '8cf6ce61028bea06fdb26ded40ed970d'
-    
+inputform.addEventListener("submit", (e) =>{
+    e.preventDefault()
+    const city = userInput.value 
+    if(checkEmptyValues(city)){
+        displayMessage("Empty Values", "#FF5733 ",2000)
+        userInput.value = ""
     }
-    let apiData
-    let url = `https://api.openweathermap.org/data/2.5/find?q=${weather.city}&units=metric&appid=${weather.apiKey}`
-    fetch(url)
-        .then((res) => {
-            return res.json()
-        })
-        .then((data) => {
-            const locCard = document.querySelector('.loc')
-            const wsCard = document.querySelector('.ws')
-            const temCard = document.querySelector('.tem')
-            const humCard = document.querySelector('.hum')
-            const wdCard = document.querySelector('.wd')
-            const preCard = document.querySelector('.pre')
-            const loc = document.querySelector('.location h4')
-            const temperature = document.querySelector('.temperature')
-            const desc = document.querySelector('.discription')
+    else{
+        displayMessage("Loading...", "#98FB98", 700)
+        getWeatherData(city)
+        userInput.value = ""
+    }
     
+
+})
+
+
+
+// check for all space input
+function checkEmptyValues(str){
+    let len = str.length
+    let newStr = ''
+    for(var i = 0; i < len; ++i){
+        newStr += " "
+    }
+
+    if(str === newStr){
+        return true
+    }
+}
+
+
+/// small alert boc
+
+function displayMessage(string, backround, time){
+    let message = document.querySelector(".message")
+    message.style.display = "grid"
+    message.style.backgroundColor = backround
+    message.textContent = string
+
+    setTimeout(()=>{
+        message.style.display = "none"
+    }, time)
+}
+//api things
+async function getWeatherData(city){
+    const apiData = {
+        key: '8cf6ce61028bea06fdb26ded40ed970d',
+        city
+    }
+
+    const url = `https://api.openweathermap.org/data/2.5/find?q=${apiData.city}&units=metric&appid=${apiData.key}`
+
+    const jsonData = await fetch(url)
+    const objectData = await jsonData.json()
     
-            //temp pressure humidity
-            let apiData = data.list[0].main
-            console.log(apiData)
-            preCard.innerHTML = `<p class="pre">${apiData.pressure} <span class="unit">hPa</span></p>`
-            temCard.innerHTML = `<p class="tem">${apiData.temp} <span class="unit">°C</span></p>`
-            humCard.innerHTML = `<p class="hum">${apiData.humidity} <span class="unit">%</span></p>`
-            temperature.innerHTML = `<h4>${apiData.temp}°<sup>c</sup></h4>`
-            //location
-            let location = data.list[0].name
-            loc.textContent = location
-            // co-ordinates
-            let codLat = data.list[0].coord.lat
-            let codLong = data.list[0].coord.lon
-            locCard.innerHTML = `<p class="loc">${codLong.toFixed(2)} <span class="unit"><sup>°</sup></span> ${codLat.toFixed(2)}<span class="unit"><sup>°</sup></span></p>`
+    // destucturing api data
+    const{list,cod } = objectData
+
+    if(cod == 200){
+        if(list.length == 0){
+            displayMessage(`${city.toUpperCase()} does not exist!`, "#FF5733 ", 3000)
+        }
+        else{
+            // destructuring list 
+            const{name, main: {temp, pressure, humidity}, wind: {speed, deg}, weather, sys: {country}, coord: {lon, lat}} = list[0]
+            const{id, description, icon} = weather[0]
+            // console.log(name, temp, pressure, humidity, speed, deg, id, description, icon)
+            const iconImage = `http://openweathermap.org/img/wn/${icon}@2x.png`
+            //  seting image
+            const img = document.querySelector('.icon img')
+            img.src = iconImage
     
-            //description
-            let description = (data.list[0].weather[0].description)
-            desc.textContent = description
+            // setting description
+            setValues("discription", description)
+            setValues("temperature", `${temp} °C`)
+            setValues("location h4", country)
+            setValues("tem", `${temp} °C`)
+            setValues("ws", `${speed} ms<sup>-1</sup>`)
+            setValues("loc", `${lon}° ${lat}°`)
+            setValues("hum", `${humidity} %`)
+            setValues("wd", `${deg} °`)
+            setValues("pre", `${pressure} hPa`)
+        }
+    }
+    else if(cod > 399 && cod < 600 ){
+        displayMessage(`Bad Request.`, "#FF5733 ", 3000)
+    }
     
-            // param for icon description
-            let icon = data.list[0].weather[0].main
-            let pic = document.querySelector('.icon img')
-            if(icon == 'Clouds'){
-                pic.src = './assets/clouds-svgrepo-com.svg'
-            }
-            else if(icon == 'Rain'){
-                pic.src = './assets/rain-svgrepo-com.svg'
-            }
-            // winddirection
-            
-            wdCard.innerHTML = `<p class="wd">${data.list[0].wind.deg} <span class="unit">°</span></p>`
-    
-            //wind speed
-            wsCard.innerHTML = `<p class="ws">${data.list[0].wind.speed} <span class="unit">ms<sup>-1</sup></span></p>`
-        })
+
+}
+
+// function to set various values
+
+function setValues(classname, val){
+    document.querySelector(`.${classname}`).innerHTML = val 
 }
