@@ -133,7 +133,7 @@ async function getWeatherData(city){
             setValues("location h4", country)
             setValues("tem", `${temp} °C`)
             setValues("ws", `${speed} ms<sup>-1</sup>`)
-            setValues("loc", `${lon}° ${lat}°`)
+            setValues("loc", `${lon.toFixed(2)}° ${lat.toFixed(2)}°`)
             setValues("hum", `${humidity} %`)
             setValues("wd", `${deg} °`)
             setValues("pre", `${pressure} hPa`)
