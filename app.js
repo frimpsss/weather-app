@@ -130,7 +130,7 @@ async function getWeatherData(city){
             // setting description
             setValues("discription", description)
             setValues("temperature", `${temp} °C`)
-            setValues("location h4", country)
+            setValues("location h4", `${name} - ${country}`)
             setValues("tem", `${temp} °C`)
             setValues("ws", `${speed} ms<sup>-1</sup>`)
             setValues("loc", `${lon.toFixed(2)}° ${lat.toFixed(2)}°`)
